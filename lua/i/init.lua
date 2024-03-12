@@ -25,6 +25,7 @@ function M.submit_journal_entry()
 	api.nvim_buf_delete(buf, { force = true })
 end
 
+-- open_journal_dialogue opens a new buffer and window for the user to enter a journal entry
 local function open_journal_dialogue()
 	local buf = api.nvim_create_buf(false, true)
 	local width = 50
@@ -55,10 +56,12 @@ local function open_journal_dialogue()
 		'<cmd>lua require("i").submit_journal_entry()<CR>', { noremap = true, silent = true })
 end
 
+-- create a user command to open the journal dialogue
 api.nvim_create_user_command("IEntry", function()
 	open_journal_dialogue()
 end, {})
 
+-- schedule_journal_entry schedules the journal dialogue to open at the next target minute
 local function schedule_journal_entry()
 	local target_minutes = { 10, 40 } -- Change these values to set the desired minutes within the hour
 
@@ -102,9 +105,9 @@ local function schedule_journal_entry()
 
 	schedule_callback()
 end
-schedule_journal_entry()
+schedule_journal_entry() -- Start the timer
 
--- define a keymap to open the journal dialogue
+-- define a default keymap to open the journal dialogue
 vim.keymap.set("n", "<leader>ie", "<cmd>IEntry<CR>", { noremap = true, silent = true })
 
 return M

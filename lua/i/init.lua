@@ -2,17 +2,29 @@ local api = vim.api
 
 local M = {}
 
+-- default configuration
+local config = {
+	launch_minutes = { 10, 40 }, -- the minutes of the hour to open the journal dialogue
+	dialogue_width = 50,
+	dialogue_height = 10,
+	keymap = "<leader>ie",
+}
+
+-- setup function to allow users to override default configuration
+function M.setup(user_config)
+	-- Merge user configuration with default configuration
+	config = vim.tbl_deep_extend("force", config, user_config or {})
+end
+
+-- submit_journal_entry submits the current journal buffer's contents as a journal entry to the i command
 function M.submit_journal_entry()
 	local buf = api.nvim_get_current_buf()
 	local lines = api.nvim_buf_get_lines(buf, 1, -1, false) -- ignore the first line
 	local entry = table.concat(lines, "\n")
 
-	-- strip off leading % chars from the entry
-	entry = entry:gsub("%%", "")
-	-- trim
-	entry = entry:gsub("^%s*(.-)%s*$", "%1")
+	entry = entry:gsub("%%", "")        -- remove any percent signs
+	entry = entry:gsub("^%s*(.-)%s*$", "%1") -- trim
 
-	-- run the i command in bash
 	local isource = os.getenv("I_SOURCE_DIR")
 	local command = string.format('/bin/bash -c "source %s/i.sh && i \\"%s\\""', isource, entry)
 	local output = vim.fn.system(command)
@@ -22,14 +34,20 @@ function M.submit_journal_entry()
 		print(output)
 	end
 
+	M.close_journal_entry()
+end
+
+-- close_journal_entry closes the current journal buffer and window
+function M.close_journal_entry()
+	local buf = api.nvim_get_current_buf()
 	api.nvim_buf_delete(buf, { force = true })
 end
 
 -- open_journal_dialogue opens a new buffer and window for the user to enter a journal entry
 local function open_journal_dialogue()
 	local buf = api.nvim_create_buf(false, true)
-	local width = 50
-	local height = 10
+	local width = config.dialogue_width
+	local height = config.dialogue_height
 	local x = (api.nvim_get_option("columns") - width) / 2
 	local y = (api.nvim_get_option("lines") - height) / 2
 
@@ -53,7 +71,11 @@ local function open_journal_dialogue()
 
 	local submit_mapping = api.nvim_replace_termcodes("<CR>", true, false, true)
 	api.nvim_buf_set_keymap(buf, 'i', submit_mapping,
-		'<cmd>lua require("i").submit_journal_entry()<CR>', { noremap = true, silent = true })
+		'<cmd>lua require("i").submit_journal_entry()<CR>', { noremap = true, silent = true, description = "Submit the journal entry"})
+
+	-- same for escape 
+	api.nvim_buf_set_keymap(buf, 'n', '<Esc>', '<cmd>bdelete!<CR>', { noremap = true, silent = true, description = "Close the journal dialogue"})
+	api.nvim_buf_set_keymap(buf, 'i', '<C-c>', '<cmd>bdelete!<CR>', { noremap = true, silent = true, description = "Close the journal dialogue"})
 end
 
 -- create a user command to open the journal dialogue
@@ -63,7 +85,7 @@ end, {})
 
 -- schedule_journal_entry schedules the journal dialogue to open at the next target minute
 local function schedule_journal_entry()
-	local target_minutes = { 10, 40 } -- Change these values to set the desired minutes within the hour
+	local launch_minutes = config.launch_minutes -- how often to open the journal dialogue
 
 	local timer = vim.loop.new_timer()
 	local function schedule_callback()
@@ -71,7 +93,7 @@ local function schedule_journal_entry()
 		local current_minute = current_time.min
 
 		local next_target_minute = nil
-		for _, minute in ipairs(target_minutes) do
+		for _, minute in ipairs(launch_minutes) do
 			if minute > current_minute then
 				next_target_minute = minute
 				break
@@ -98,7 +120,7 @@ local function schedule_journal_entry()
 			end))
 		else
 			-- Schedule the timer to run at the first target minute in the next hour
-			local delay_ms = (60 - current_minute + target_minutes[1]) * 60 * 1000
+			local delay_ms = (60 - current_minute + launch_minutes[1]) * 60 * 1000
 			timer:start(delay_ms, 0, vim.schedule_wrap(schedule_callback))
 		end
 	end
@@ -108,6 +130,6 @@ end
 schedule_journal_entry() -- Start the timer
 
 -- define a default keymap to open the journal dialogue
-vim.keymap.set("n", "<leader>ie", "<cmd>IEntry<CR>", { noremap = true, silent = true })
+vim.keymap.set("n", config.keymap, "<cmd>IEntry<CR>", { noremap = true, silent = true })
 
 return M

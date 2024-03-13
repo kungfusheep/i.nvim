@@ -71,11 +71,11 @@ local function open_journal_dialogue()
 
 	local submit_mapping = api.nvim_replace_termcodes("<CR>", true, false, true)
 	api.nvim_buf_set_keymap(buf, 'i', submit_mapping,
-		'<cmd>lua require("i").submit_journal_entry()<CR>', { noremap = true, silent = true, description = "Submit the journal entry"})
+		'<cmd>lua require("i").submit_journal_entry()<CR>', { noremap = true, silent = true})
 
 	-- same for escape 
-	api.nvim_buf_set_keymap(buf, 'n', '<Esc>', '<cmd>bdelete!<CR>', { noremap = true, silent = true, description = "Close the journal dialogue"})
-	api.nvim_buf_set_keymap(buf, 'i', '<C-c>', '<cmd>bdelete!<CR>', { noremap = true, silent = true, description = "Close the journal dialogue"})
+	api.nvim_buf_set_keymap(buf, 'n', '<Esc>', '<cmd>bdelete!<CR>', { noremap = true, silent = true})
+	api.nvim_buf_set_keymap(buf, 'i', '<C-c>', '<cmd>bdelete!<CR>', { noremap = true, silent = true})
 end
 
 -- create a user command to open the journal dialogue

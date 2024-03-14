@@ -1,6 +1,6 @@
 # i.nvim
 
-A Neovim plugin that integrates with the `i` command-line journaling tool, providing a seamless journaling experience within your Neovim editor.
+A Neovim plugin that integrates with the `i` command-line journaling tool, opening a modal dialogue for creating journal entries at scheduled intervals.
 
 ## Features
 
@@ -19,7 +19,12 @@ A Neovim plugin that integrates with the `i` command-line journaling tool, provi
 You can install the plugin using your preferred package manager, below is an example using Lazy:
 
 ```lua
-{ "kungfusheep/i.nvim", event = "VeryLazy" }
+{
+    "kungfusheep/i.nvim",
+    event = "VeryLazy",
+    config = function()
+        require("i").setup()
+    end,
 ```
 
 ## Configuration
@@ -28,24 +33,30 @@ You can customize the plugin's behavior by calling the `setup` function in your 
 
 ```lua
 require("i").setup({
-  launch_minutes = { 10, 40 },  -- Open the dialogue at 10 and 40 minutes past each hour
-  dialogue_width = 50,         -- Set the dialogue window width to 50 columns
-  dialogue_height = 10,        -- Set the dialogue window height to 10 lines
-  keymap = "<leader>ie",        -- Set the default keymap to open the journal dialogue
+    use_schedule = true,         -- Automatically open the dialogue at the specified intervals
+    launch_minutes = { 10, 40 }, -- Open the dialogue at 10 and 40 minutes past each hour
+    dialogue_width = 50,         -- Set the dialogue window width to 50 columns
+    dialogue_height = 10,        -- Set the dialogue window height to 10 lines
+	keymap = {
+		new_entry = "<leader>ie",
+		quit_entry_normal = "<ESC>",
+		quit_entry_insert = "<C-c>",
+	},
 })
 ```
 
 The available configuration options are:
 
+- `use_schedule`: Whether to automatically schedule the journal dialogue to open at the specified intervals (default: `true`).
 - `launch_minutes`: A table of minutes of the hour to open the journal dialogue (default: `{ 10, 40 }`).
 - `dialogue_width`: The width of the journal dialogue window (default: `50`).
 - `dialogue_height`: The height of the journal dialogue window (default: `10`).
-- `keymap`: The default keymap to open the journal dialogue (default: `"<leader>ie"`).
+- `keymap`: The default keymap to open the journal dialogue (see above).
 
 ## Usage
 
 - The journal dialogue will automatically open at the configured minutes of the hour.
-- To manually open the journal dialogue, use the configured keymap (default: `<leader>ie`).
+- To manually open the journal dialogue, use the configured keymap (default: `<leader>ie`) or the `:IEntry` command.
 - Enter your journal entry in the dialogue window.
 - Press `<Enter>` to submit the journal entry using the `i` tool.
 
@@ -55,7 +66,7 @@ The available configuration options are:
 
 ## Integration with the `i` Journaling Tool
 
-This plugin seamlessly integrates with the `i` command-line journaling tool (https://github.com/kungfusheep/i). When you submit a journal entry using the plugin, it is automatically added to your `i` journal repository.
+This plugin integrates with the `i` command-line journaling tool (https://github.com/kungfusheep/i). When you submit a journal entry using the plugin, it is added to your `i` journal repository.
 
 You can then use the various features provided by the `i` tool to manage, analyze, and interact with your journal entries. Some notable features include:
 
@@ -72,8 +83,5 @@ This plugin is released under the [MIT License](LICENSE).
 
 ## Contributing
 
-Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request on the [GitHub repository](https://github.com/kungfusheep/i.nvim).
+Contributions are welcome! If you find any issues or have suggestions for improvements, please submit a pull request on the [GitHub repository](https://github.com/kungfusheep/i.nvim).
 
-## Acknowledgements
-
-- This plugin is built to integrate with the `i` command-line journaling tool (https://github.com/kungfusheep/i).

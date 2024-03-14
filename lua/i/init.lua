@@ -4,17 +4,16 @@ local M = {}
 
 -- default configuration
 local config = {
+	use_schedule = true,    -- whether to schedule the journal dialogue to open at defined intervals
 	launch_minutes = { 10, 40 }, -- the minutes of the hour to open the journal dialogue
 	dialogue_width = 50,
 	dialogue_height = 10,
-	keymap = "<leader>ie",
+	keymap = {
+		new_entry = "<leader>ie",
+		quit_entry_normal = "<ESC>",
+		quit_entry_insert = "<C-c>",
+	},
 }
-
--- setup function to allow users to override default configuration
-function M.setup(user_config)
-	-- Merge user configuration with default configuration
-	config = vim.tbl_deep_extend("force", config, user_config or {})
-end
 
 -- submit_journal_entry submits the current journal buffer's contents as a journal entry to the i command
 function M.submit_journal_entry()
@@ -71,17 +70,13 @@ local function open_journal_dialogue()
 
 	local submit_mapping = api.nvim_replace_termcodes("<CR>", true, false, true)
 	api.nvim_buf_set_keymap(buf, 'i', submit_mapping,
-		'<cmd>lua require("i").submit_journal_entry()<CR>', { noremap = true, silent = true})
+		'<cmd>lua require("i").submit_journal_entry()<CR>', { noremap = true, silent = true })
 
-	-- same for escape 
-	api.nvim_buf_set_keymap(buf, 'n', '<Esc>', '<cmd>bdelete!<CR>', { noremap = true, silent = true})
-	api.nvim_buf_set_keymap(buf, 'i', '<C-c>', '<cmd>bdelete!<CR>', { noremap = true, silent = true})
+	-- same for escape
+	api.nvim_buf_set_keymap(buf, 'n', config.keymap.quit_entry_normal, '<cmd>bdelete!<CR>', { noremap = true, silent = true })
+	api.nvim_buf_set_keymap(buf, 'i', config.keymap.quit_entry_insert , '<cmd>bdelete!<CR>', { noremap = true, silent = true })
 end
 
--- create a user command to open the journal dialogue
-api.nvim_create_user_command("IEntry", function()
-	open_journal_dialogue()
-end, {})
 
 -- schedule_journal_entry schedules the journal dialogue to open at the next target minute
 local function schedule_journal_entry()
@@ -127,9 +122,26 @@ local function schedule_journal_entry()
 
 	schedule_callback()
 end
-schedule_journal_entry() -- Start the timer
 
--- define a default keymap to open the journal dialogue
-vim.keymap.set("n", config.keymap, "<cmd>IEntry<CR>", { noremap = true, silent = true })
+local function setup_keymap()
+	vim.keymap.set("n", config.keymap.new_entry, "<cmd>IEntry<CR>", { noremap = true, silent = true })
+end
+
+-- setup function to allow users to override default configuration
+function M.setup(user_config)
+	assert(os.getenv("I_SOURCE_DIR") ~= nil, "I_SOURCE_DIR environment variable not set. You may need to update i.")
+
+	config = vim.tbl_deep_extend("force", config, user_config or {})
+
+	api.nvim_create_user_command("IEntry", function()
+		open_journal_dialogue()
+	end, {})
+
+	setup_keymap()
+
+	if config.use_schedule and #config.launch_minutes > 0 then
+		schedule_journal_entry()
+	end
+end
 
 return M

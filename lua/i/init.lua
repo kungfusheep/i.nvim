@@ -10,6 +10,7 @@ local config = {
 	dialogue_height = 10,
 	keymap = {
 		new_entry = "<leader>ie",
+		submit_entry = "<CR>",
 		quit_entry_normal = "<ESC>",
 		quit_entry_insert = "<C-c>",
 	},
@@ -24,8 +25,7 @@ function M.submit_journal_entry()
 	entry = entry:gsub("%%", "")        -- remove any percent signs
 	entry = entry:gsub("^%s*(.-)%s*$", "%1") -- trim
 
-	local isource = os.getenv("I_SOURCE_DIR")
-	local command = string.format('/bin/bash -c "source %s/i.sh && i \\"%s\\""', isource, entry)
+	local command = string.format('/bin/bash -c "source %s/i.sh && i \\"%s\\""', os.getenv("I_SOURCE_DIR"), entry)
 	local output = vim.fn.system(command)
 
 	if vim.v.shell_error ~= 0 then
@@ -68,7 +68,7 @@ local function open_journal_dialogue()
 	-- automatically go into insert mode
 	api.nvim_command("startinsert")
 
-	local submit_mapping = api.nvim_replace_termcodes("<CR>", true, false, true)
+	local submit_mapping = api.nvim_replace_termcodes(config.keymap.submit_entry, true, false, true)
 	api.nvim_buf_set_keymap(buf, 'i', submit_mapping,
 		'<cmd>lua require("i").submit_journal_entry()<CR>', { noremap = true, silent = true })
 

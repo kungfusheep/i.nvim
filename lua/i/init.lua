@@ -58,23 +58,28 @@ local function open_journal_dialogue()
 		row = y,
 		col = x
 	})
-	api.nvim_buf_set_option(buf, "buftype", 'prompt')
-	api.nvim_buf_set_option(buf, "bufhidden", 'wipe')
-	api.nvim_buf_set_option(buf, "filetype", 'nvim-journal')
+	api.nvim_buf_set_option(buf, "buftype", "nofile")
+	api.nvim_buf_set_option(buf, "bufhidden", "wipe")
+	api.nvim_buf_set_option(buf, "filetype", "nvim-journal")
 
-	api.nvim_buf_set_lines(buf, 0, -1, false, { "Enter your journal entry:" })
+	api.nvim_buf_set_lines(buf, 0, -1, false, { "Journal", "", "i " })
 	api.nvim_buf_set_option(buf, "modifiable", true)
 	api.nvim_win_set_option(win, "cursorline", true)
+
+	api.nvim_win_set_cursor(win, { 3, 3 })
+
 	-- automatically go into insert mode
 	api.nvim_command("startinsert")
 
 	local submit_mapping = api.nvim_replace_termcodes(config.keymap.submit_entry, true, false, true)
-	api.nvim_buf_set_keymap(buf, 'i', submit_mapping,
-		'<cmd>lua require("i").submit_journal_entry()<CR>', { noremap = true, silent = true })
+	api.nvim_buf_set_keymap(buf, "i", submit_mapping,
+		"<cmd>lua require('i').submit_journal_entry()<CR>", { noremap = true, silent = true })
 
 	-- same for escape
-	api.nvim_buf_set_keymap(buf, 'n', config.keymap.quit_entry_normal, '<cmd>bdelete!<CR>', { noremap = true, silent = true })
-	api.nvim_buf_set_keymap(buf, 'i', config.keymap.quit_entry_insert , '<cmd>bdelete!<CR>', { noremap = true, silent = true })
+	api.nvim_buf_set_keymap(buf, "n", config.keymap.quit_entry_normal, "<cmd>bdelete!<CR>",
+		{ noremap = true, silent = true })
+	api.nvim_buf_set_keymap(buf, "i", config.keymap.quit_entry_insert, "<cmd>bdelete!<CR>",
+		{ noremap = true, silent = true })
 end
 
 

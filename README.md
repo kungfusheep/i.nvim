@@ -2,6 +2,9 @@
 
 A Neovim plugin that integrates with the `i` command-line journaling tool, opening a modal dialogue for creating journal entries at scheduled intervals.
 
+<img width="665" alt="image" src="https://github.com/kungfusheep/i.nvim/assets/6867511/3de61f72-27be-498c-9853-c636e8cdf742">
+
+
 ## Features
 
 - Opens a modal dialogue for creating journal entries at configurable intervals.

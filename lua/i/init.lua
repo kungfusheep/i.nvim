@@ -45,6 +45,7 @@ end
 -- open_journal_dialogue opens a new buffer and window for the user to enter a journal entry
 local function open_journal_dialogue()
 	local buf = api.nvim_create_buf(false, true)
+	vim.b[buf].copilot_enabled = false -- disable copilot for this buffer
 	local width = config.dialogue_width
 	local height = config.dialogue_height
 	local x = (api.nvim_get_option("columns") - width) / 2
